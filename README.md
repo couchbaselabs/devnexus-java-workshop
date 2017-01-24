@@ -181,6 +181,83 @@ Provided there are no errors, the three endpoint RESTful API will be serving at 
 
 ### Developing a Client Front-End with Angular
 
+Using a RESTful API through tools like Postman isn't necessarily an attractive solution.  Instead it makes sense to build a client application that can push and consume data.  This is where Angular comes in.  It allows us to build a client-facing website that communicates with our Java backend.
+
+The Angular client front-end will be developed within the **initial/angular** project.
+
+#### Step 1 - Requesting Data from a RESTful API
+
+When it comes to getting data from a RESTful API, an application needs to make an HTTP request to an available endpoint.  In Angular, there is what is called the `Http` service.  This service allows for pretty much any kind of HTTP request.
+
+A typical request might look like the following:
+
+```
+var myObservable = http.get("http://example.com/endpoint");
+```
+
+You'll notice that we're working with observables, just like with RxJava.  This is because Angular uses the JavaScript version called RxJS.
+
+This means that we have control of our data stream.  For example, the following transformation is valid:
+
+```
+http.get("http://example.com/endpoint");
+    .map(result => result.json())
+    .subscribe(result => {
+        console.log(result);
+    });
+```
+
+Open the project's **src/app/movies/movies.component.ts** file and look out for the first step.  The goal here is to make a request against the `/movies` endpoint of the Java application.  The result of the request should be stored in the public `movies` variable.
+
+#### Step 2 - Obtaining Data when the Page Loads
+
+When the application loads, it is a good idea to populate the screen with data from our backend.  This is typically done in the Angular `ngOnInit` method rather than the `constructor` which triggers first.
+
+Two things need to be considered when initializing a page in Angular:
+
+1. Was the page navigated to?
+2. Was the page returned to?
+
+In Angular, it is possible to navigate to a page, making it the top item in the navigation stack.  It is also possible to pop from the navigation stack, which is the same thing as navigating back to a page.  These are two different navigation scenarios.
+
+When a page is navigated directly to, the `constructor` and `ngOnInit` methods are triggered.  If the page is navigated back to, neither of those methods are triggered.
+
+Instead, we have to subscribe to changes in the navigation stack, otherwise we won't know if we've returned.  This is possible through:
+
+```
+location.subscribe(() => {
+    console.log("I am back!");
+});
+```
+
+So why is this important?  If we've navigated back, we should probably refresh the data on the screen because it could be stale.
+
+Open the project's **src/app/movies/movies.component.ts** and look for the second step.  Update it so the data on the screen is refreshed for both types of navigation.
+
+#### Step 3 - Rendering Remote Data to the Screen
+
+After making requests to the Java RESTful API, the `movies` variable should now contain data to be rendered to the screen.  This requires some changes to the HTML.
+
+To display data from an array, one would typically do the following:
+
+```
+<ul>
+    <li *ngFor="let item of items">
+        {{ item }}
+    </li>
+</ul>
+```
+
+In the above example, `items` would be an array of strings.  Each iteration of the loop will allow us to print out a particular item called `item`.
+
+Open the project's **src/app/movies/movies.component.html** and find the third step.  Take note that we're not working with an unordered list and our array is not of strings.
+
+#### Step 4 - Sending User Input to the RESTful API
+
+#### Step 5 - Binding Form Elements to the TypeScript Logic
+
+#### Step 6 - Running the Application with the Angular CLI
+
 ### Bringing the Client Front-End to Desktop with JavaFX
 
 ### Introducing Client to Server Sync with JavaFX and Couchbase Mobile

@@ -29,10 +29,10 @@ export class CreateComponent implements OnInit {
         if(this.movie.title && this.movie.genre) {
             let headers = new Headers({ "Content-Type": "application/json" });
             let options = new RequestOptions({ "headers": headers });
-            this.http.post("http://localhost:8080/movies", JSON.stringify(this.movie), options)
-                .subscribe(result => {
-                    this.location.back();
-                });
+            // Step #4 - Sending User Input to the RESTful API
+            // Hint
+            // What does the server expect, and in what format?
+            /* CUSTOM CODE HERE */
         }
     }
 

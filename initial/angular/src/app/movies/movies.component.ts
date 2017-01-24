@@ -18,22 +18,17 @@ export class MoviesComponent implements OnInit {
     }
 
     public ngOnInit() {
-        this.location.subscribe(() => {
-            this.refresh();
-        });
-        this.refresh();
+        // Step #2 - Obtaining Data when the Page Loads
+        // Hint
+        // 'Refresh' data after navigation and on load
+        /* CUSTOM CODE HERE */
     }
 
     public refresh(query?: any) {
-        let url = "http://localhost:8080/movies";
-        if(query && query.target.value) {
-            url = "http://localhost:8080/search/?title=" + query.target.value;
-        }
-        this.http.get(url)
-            .map(result => result.json())
-            .subscribe(result => {
-                this.movies = result;
-            });
+        // Step #1 - Requesting Data from a RESTful API
+        // Hint
+        // HTTP with RxJS, similar to RxJava
+        /* CUSTOM CODE HERE */
     }
 
     public create() {

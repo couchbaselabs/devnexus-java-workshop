@@ -56,11 +56,13 @@ public class Application implements Filter {
     public @Bean
     Cluster cluster() {
         // Step #1 - Connect to the Couchbase Cluster
+        /* CUSTOM CODE HERE */
     }
 
     public @Bean
     Bucket bucket() {
         // Step #2 - Open a Couchbase Bucket
+        /* CUSTOM CODE HERE */
     }
 
     @RequestMapping(value="/movies", method= RequestMethod.GET)

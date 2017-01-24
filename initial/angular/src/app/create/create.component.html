@@ -22,25 +22,9 @@
             <div class="panel panel-default">
                 <div class="panel-heading">Bought a Movie?</div>
                 <div class="panel-body">
-                    <div class="form-group">
-                        <label for="title">Title</label>
-                        <input type="text" class="form-control" id="title" placeholder="Title" [(ngModel)]="movie.title">
-                    </div>
-                    <div class="form-group">
-                        <label for="genre">Genre</label>
-                        <input type="text" class="form-control" id="genre" placeholder="Genre" [(ngModel)]="movie.genre">
-                    </div>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" [(ngModel)]="movie.formats.digital"> Digital Copy
-                        </label>
-                        <label>
-                            <input type="checkbox" [(ngModel)]="movie.formats.bluray"> Blu-Ray
-                        </label>
-                        <label>
-                            <input type="checkbox" [(ngModel)]="movie.formats.dvd"> DVD
-                        </label>
-                    </div>
+                    <!-- Step #5 - Binding Form Elements to the TypeScript Logic -->
+                    <!-- Hint -->
+                    <!-- ngModel with a hint of Bootstrap -->
                 </div>
             </div>
         </div>
