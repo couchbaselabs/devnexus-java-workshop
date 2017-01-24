@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="380.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.couchbase.MovieFXController">
+   <children>
+      <ListView fx:id="fxListView" layoutX="10.0" layoutY="10.0" prefHeight="265.0" prefWidth="580.0" />
+      <TextField fx:id="fxTitle" layoutX="14.0" layoutY="287.0" prefHeight="25.0" prefWidth="270.0" promptText="Title" />
+      <TextField fx:id="fxGenre" layoutX="14.0" layoutY="340.0" prefHeight="27.0" prefWidth="270.0" promptText="Genre" />
+      <CheckBox fx:id="fxDigital" layoutX="300.0" layoutY="287.0" mnemonicParsing="false" text="Digital Copy" />
+      <CheckBox fx:id="fxBluray" layoutX="300.0" layoutY="318.0" mnemonicParsing="false" text="Blu-Ray" />
+      <CheckBox fx:id="fxDvd" layoutX="300.0" layoutY="345.0" mnemonicParsing="false" text="DVD" />
+      <Button fx:id="fxSave" layoutX="526.0" layoutY="340.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="60.0" text="Save" />
+   </children>
+</Pane>

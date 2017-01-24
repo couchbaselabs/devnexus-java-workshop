@@ -1,0 +1,25 @@
+{
+    "log":["CRUD+", "REST+", "Changes+", "Attach+"],
+    "databases": {
+        "devnexus": {
+            "server":"http://localhost:8091",
+            "sync":`
+                function (doc) {
+                    channel (doc.channels);
+                }
+            `,
+            "users": {
+                "GUEST": {
+                    "disabled": false,
+                    "admin_channels": ["*"]
+                }
+            }
+        }
+    },
+    "CORS": {
+        "Origin": ["http://localhost:8080"],
+        "LoginOrigin": ["http://localhost:8080"],
+        "Headers": ["Content-Type"],
+        "MaxAge": 17280000
+    }
+}
