@@ -254,9 +254,69 @@ Open the project's **src/app/movies/movies.component.html** and find the third s
 
 #### Step 4 - Sending User Input to the RESTful API
 
+When making a request to create data, you typically would not use a GET request, but instead a PUT or a POST request.  In Angular, there are minimal differences when constructing either of these request types.  However, the server is expecting JSON, so the sender must define the request as JSON.
+
+In Angular, and other technologies, this is done through the request header:
+
+```
+let headers = new Headers({ "Content-Type": "application/json" });
+let options = new RequestOptions({ "headers": headers });
+```
+
+Without a header definition, any data sent will be considered plain text by default on the receiving end.  Not too big a deal if the server anticipates it, but in our situation, we are expecting JSON.
+
+Actually performing a POST HTTP request would look something like the following:
+
+```
+http.post("http://example.com/endpoint", "JSON_HERE", options)
+    .subscribe(result => {
+        console.log(result);
+    });
+```
+
+In the project's **src/app/create/create.component.ts** file, search for the fourth step.  The goal here is to make a POST request against the server and navigate backwards to the previous page, only if the request was successful.
+
 #### Step 5 - Binding Form Elements to the TypeScript Logic
 
+Often data will need to be user generated before making a request to the backend of the stack.  User generated data is made possible through forms and TypeScript bound variables.
+
+In Angular, there are several ways to bind the HTML UI to the front-end logic.  Take for example Angular Template syntax:
+
+```
+<input #firstname type="text" placeholder="First Name" />
+<button (click)="save(firstname.value)">Save</Button>
+```
+
+In the above scenario, the input field is referenced by `firstname` at which point we are passing the value of that reference to a function.  This is not a two-way data bind.
+
+To two-way data bind, and an alternative to the Template syntax, the following is an acceptable solution:
+
+```
+<input [(ngModel)]="firstname" type="text" placeholder="First Name" />
+<button (click)="save()">Save</button>
+```
+
+By using the `[(ngModel)]` tag, the `firstname` reference is bound to a public variable in the TypeScript code.  Updating the variable on one side will reflect on the other, hence there is no need to pass it via the button function.
+
+Open the project's **src/app/create/create.component.html** file and find the fifth step.  Try to add a form that will be used to submit data to the backend for creation.
+
 #### Step 6 - Running the Application with the Angular CLI
+
+In this workshop, the Angular application will not be distributed as part of the Java RESTful API.  Instead it will be served along-side the backend on a different port.
+
+Using the Node Package Manager (NPM) which comes with Node.js, execute the following to obtain all the project dependencies:
+
+```
+npm install
+```
+
+When the Angular dependencies are installed, the project can be run by executing the following:
+
+```
+ng serve
+```
+
+The backend should be available at http://localhost:8080 while the Angular application should be available at http://localhost:4200.  Make sure all the features work.
 
 ### Bringing the Client Front-End to Desktop with JavaFX
 
