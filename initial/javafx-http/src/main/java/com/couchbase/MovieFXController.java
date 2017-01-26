@@ -76,9 +76,10 @@ public class MovieFXController implements Initializable {
         fxSave.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
                 if(!fxTitle.getText().equals("") && !fxGenre.getText().equals("")) {
-                    Movie movie = new Movie(fxTitle.getText(), fxGenre.getText(), fxDigital.isSelected(), fxBluray.isSelected(), fxDvd.isSelected());
-                    fxListView.getItems().add(movie);
-                    JsonObject response = makePostRequest("http://localhost:8080/movies", movie.getJsonObject().toString());
+                    // Step #3 - Sending Data to the Backend Java API
+                    // Hint
+                    // Gather the form data and submit it via the `makePostRequest` function
+                    /* CUSTOM CODE HERE */
                     fxTitle.setText("");
                     fxGenre.setText("");
                     fxDigital.setSelected(false);
@@ -102,16 +103,10 @@ public class MovieFXController implements Initializable {
 
     private void refresh() {
         fxListView.getItems().clear();
-        try {
-            JsonObject response = makeGetRequest("http://localhost:8080/movies");
-            JsonObject movieItem;
-            for(int i = 0; i < response.getArray("content").size(); i++) {
-                movieItem = (response.getArray("content")).getObject(i);
-                fxListView.getItems().add(new Movie(movieItem));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Step #2 - Request Data from the Backend with a GET Request
+        // Hint
+        // Use `makeGetRequest` and store the result in the `fxListView`
+        /* CUSTOM CODE HERE */
     }
 
     private JsonObject makePostRequest(String url, String body) {

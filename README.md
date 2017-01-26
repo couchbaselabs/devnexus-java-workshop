@@ -320,6 +320,105 @@ The backend should be available at http://localhost:8080 while the Angular appli
 
 ### Bringing the Client Front-End to Desktop with JavaFX
 
+As of right there are three parts to this full stack application.  There is the NoSQL database, the Spring Boot powered RESTful API, and there is the Angular front-end.  However, as of right now, this stack is limited to being used from the web.  It doesn't have to be though.
+
+What would it take to bring this application to desktop clients?  This is where JavaFX comes into play.  JavaFx can act as a desktop client that communicates to the Spring Boot backend, replacing or complimenting the Angular layer.
+
+Development for this section will happen in the **initial/javafx-http** project.
+
+#### Step 1 - Creating the JavaFX UI
+
+The UI in a JavaFX application is powered by XML, similar to HTML.  This XML can be crafted by hand or with a design application called [Scene Builder](http://docs.oracle.com/javase/8/scene-builder-2/get-started-tutorial/overview.htm#JSBGS164).
+
+Within a JavaFX scene, the window pane can be sized and UI components such as text fields and buttons can be added and positioned.
+
+Take the following window pane:
+
+```
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="380.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.couchbase.JavaFXController">
+    <children>
+        <TextField fx:id="name" layoutX="14.0" layoutY="287.0" prefHeight="25.0" prefWidth="270.0" promptText="Name" />
+        <TextField fx:id="address" layoutX="14.0" layoutY="340.0" prefHeight="27.0" prefWidth="270.0" promptText="Address" />
+        <Button fx:id="send" layoutX="454.0" layoutY="340.0" mnemonicParsing="false" text="Send" />
+    </children>
+</Pane>
+```
+
+The above window pane is 600x380 in size with three components positioned absolutely in the space.  Each component has an `fx:id` property that will be bound in the controller specified in the `fx:controller` attribute.
+
+Open the project's **src/main/resources/MovieFX.fxml** file and search for the first step.  There are eight components that we want to add where each component relates to the data we wish to send to the server and to the data we wish to receive from the server.  This means we'll want list views, text fields, checkboxes, and buttons.  Look in the project's **src/main/java/com/couchbase/MovieFXController** for the `fx:id` names.
+
+#### Step 2 - Request Data from the Backend with a GET Request
+
+Just like with the Angular application, data needs to be consumed from the Spring Boot Java application.  This means that an HTTP request must be made against the server and any data returned added to the list component.
+
+In Java there are a few ways to make GET requests against a web service.  The most common ways are to make use of the `HttpClient`, `HttpGet`, and `HttpResponse` classes.  An example of such a request might look like the following:
+
+```
+private String makeGetRequest(String url) {
+    String result = "";
+    try {
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpGet request = new HttpGet(url);
+        HttpResponse response = client.execute(request);
+        BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+        String line = "";
+        while ((line = rd.readLine()) != null) {
+            result += line;
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return result;
+}
+```
+
+In the above function, a request is made against the provided URL.  The response is then gathered and returned as a string back to the calling method.
+
+Open the project's **src/main/java/com/couchbase/MovieFXController.java** file and find the second step.  Here we'll want to make a GET request, parse the results, and add them to the list component.  Remember, our results are an array coming back in string format.  For help, take a look at the project's **src/main/java/com/couchbase/Movie.java** file to see what kind of data is expected to enter the list component.
+
+#### Step 3 - Sending Data to the Backend Java API
+
+When it comes to adding data to the database, a request must be made against the Spring Boot application.  Just like with the Angular application, this is done through a POST request.
+
+A POST request in Java is similar to that of the GET request.  An example might look like the following:
+
+```
+private String makePostRequest(String url, String body) {
+    String result = "";
+    try {
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(url);
+        post.setEntity(new StringEntity(body, ContentType.create("application/json")));
+        HttpResponse response = client.execute(post);
+        BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+        String line = "";
+        while ((line = rd.readLine()) != null) {
+            result += line;
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return result;
+}
+```
+
+In the above example, a request body is expected.  This request body is what we wish to save and it comes from the FXML form elements.
+
+Open the project's **src/main/java/com/couchbase/MovieFXController.java** file and find the third step.  Your goal is to take the form data and send it via a POST request to the Spring Boot backend.  Take note that the backend expects the POST body to be in JSON format.
+
+#### Step 4 - Running the Client-Facing Application with Maven
+
+To be successful with the JavaFX desktop application, Couchbase and the Spring Boot API must be functional and running.  The backend should be running at http://localhost:8080.
+
+At this point the JavaFX application can be built and run.  From the command line, execute the following with Maven:
+
+```
+mvn jfx:run
+```
+
+This will launch a desktop application that will communicate with the Spring Boot backend.
+
 ### Introducing Client to Server Sync with JavaFX and Couchbase Mobile
 
 ### Mobilizing the Spring Boot RESTful API with Sync Gateway REST Endpoints
