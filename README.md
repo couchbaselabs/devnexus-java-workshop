@@ -421,6 +421,164 @@ This will launch a desktop application that will communicate with the Spring Boo
 
 ### Introducing Client to Server Sync with JavaFX and Couchbase Mobile
 
+Being able to consume data on demand is great, but with many different clients and platforms it can become difficult to know when data has changed without refreshing one of the queries.  Instead of making requests, it might make sense to make use of data synchronization and change listeners.
+
+Synchronization with Couchbase eliminates a lot of the RESTful API need when performing client to server communications.
+
+This section will use the **initial/javafx-sync** project.
+
+#### Step 1 - Creating an Opening a Local Database
+
+Things are a little different when working with data synchronization.  Instead of working strictly with remote data, there is now a local copy.  This local copy of the data is replicated back and forth with Couchbase Sync Gateway rather than a RESTful API such as the one created with Spring Boot.
+
+That said, the application needs to be able to open the local database for any data operations.  Using what is called a Couchbase `Manager`, any particular Couchbase Lite database on the device can be opened:
+
+```
+Manager manager = new Manager(new JavaContext("data"), Manager.DEFAULT_OPTIONS);
+Database database = manager.getDatabase("DATABASE_NAME_HERE");
+```
+
+If the database had not been created, the `getDatabase` method will create it before opening.
+
+With an open database, basic key-value operations can happen.  For example, data can be inserted, updated, retrieved, or deleted based on the key of the documents.  This is great, but it doesn't make use of the features found in a document database.
+
+MapReduce views should be created when the database is opened so data can be queried.  An example of such view can be seen below:
+
+```
+View personView = database.getView("people");
+personView.setMap(new Mapper() {
+    @Override
+    public void map(Map<String, Object> document, Emitter emitter) {
+        String type = (String) document.get("type");
+        if(type.equals("person")) {
+            emitter.emit(document.get("_id"), document);
+        }
+    }
+}, "1");
+```
+
+The above code creates a view called `people`.  When queried, as long as the documents contain a `type` property that equals `person`, a result will be emitted.  Once a view is created, they will not be created again until the version number of the view changes.
+
+More on Couchbase Lite Views can be found in the [documentation](https://developer.couchbase.com/documentation/mobile/current/guides/couchbase-lite/native-api/view/index.html).
+
+Open the project's **src/main/java/com/couchbase/CouchbaseSingleton.java** file and find the first step.  Your goal is to open a local database and create a few for querying the movie data that is saved.
+
+#### Step 2 - Saving Locally to Couchbase Lite
+
+Saving data to Couchbase Lite in Java is a little different than saving it directly to Couchbase Server.  For example, the following is an object that can be saved:
+
+```
+Map<String, Object> properties = new HashMap<String, Object>();
+properties.put("type", "person");
+properties.put("firstname", "Nic");
+properties.put("lastname", "Raboy");
+```
+
+The value of map key can be any object, for example it can even be another `Map<String, Object>`.  Design the documents based on your needs.
+
+Once the properties are created, a document can be created and saved:
+
+```
+Document document = database.createDocument();
+document.putProperties(properties);
+```
+
+A key is automatically defined and the document remains local to the computer that is running the application.  Synchronization will happen soon.
+
+Open the project's **src/main/java/com/couchbase/CouchbaseSingleton.java** and look for the second step.  You need to take a `Movie` object and save it to the database.  Remember how we expect the data to look server side.  The document should have a nested `formats` object.  Once saved, don't forget to save the document id into the `Movie` object before returning it.
+
+#### Step 3 - Querying for Locally Stored Documents
+
+Remember that view that was created when Couchbase Lite was opened?  It is time to use it to query for documents that satisfy that particular criteria.
+
+To query a view you'd do something like the following:
+
+```
+View personView = database.getView("people");
+Query query = personView.createQuery();
+QueryEnumerator result = query.run();
+```
+
+The `QueryEnumerator` result can be queried over, where each iteration, a document gets added to the list that will be bound to the JavaFX list component.
+
+```
+Document document = null;
+for (Iterator<QueryRow> it = result; it.hasNext(); ) {
+    QueryRow row = it.next();
+    document = row.getDocument();
+    System.out.println((String) document.getProperty("firstname"));
+}
+```
+
+Remember, the document saved was in `Map<String, Object>` format, so don't forget to cast each property to the format that you wish to use.
+
+Open the project's **src/main/java/com/couchbase/CouchbaseSingleton.java** file and find the third step.  The goal here is to query the view that was created and return an `ArrayList` of movies to be displayed in the UI.
+
+#### Step 4 - Synchronize the Local Data with Couchbase Server
+
+Everything up until now dealt with local data.  While certain scenarios will only call for a local database, ours depends on a remote database as well.
+
+Sync Gateway should be running as part of the Docker configuration, so replication needs to be configured to replicate in both directions from the JavaFX application.
+
+A typical replication will look like the following:
+
+```
+Replication push = database.createPushReplication("http://localhost:4984/bucket_name_here");
+push.start();
+```
+
+In the above example, data in the local database will be pushed to the Sync Gateway instance.  This is done one time, but there are options for doing this continuously as data changes.
+
+More information on synchronization can be found in the [Replication](https://developer.couchbase.com/documentation/mobile/current/guides/couchbase-lite/native-api/replication/index.html) documentation.
+
+Open the project's **src/main/java/com/couchbase/CouchbaseSingleton.java** file and look for the fourth step.  Our goal is to configure replication to happen continuously and in both directions.  This means data needs to be pushed to Sync Gateway and pulled from Sync Gateway.
+
+#### Step 5 - Listening for Changes Rather Than Querying for Changes
+
+Now that data is synchronizing continuously in all directions, it is no longer efficient to keep querying to see if it has changed.  Instead, it makes sense to set up listeners to listen for when data has changed.
+
+There are many different types of change listeners available when it comes to Couchbase Lite, but the one that matters to us is the listener on the database that tells us if anything has changed.  It might look something like the following:
+
+```
+database.addChangeListener(new ChangeListener() {
+    @Override
+    public void changed(Database.ChangeEvent event) {
+        for(int i = 0; i < event.getChanges().size(); i++) {
+            Document document = database.getDocument(event.getChanges().get(i).getDocumentId());
+        }
+    }
+});
+```
+
+In the above example, when something changes in the database, each change is reviewed.  Various information such as the document id, or if the document was deleted will come in with those changes.  With the document id, each full document can be retrieved.
+
+Open the project's **src/main/java/com/couchbase/MovieFXController.java** file and look for the fifth step.  The goal here is to setup a change listener, find out what changed, and update the list component of the JavaFX application.  If the document was deleted then it should be removed from the list, and likewise with updates and creates.
+
+Something to note about JavaFX and change listeners.  They happen on separate threads, so any updates to the UI need to be wrapped in the following:
+
+```
+Platform.runLater(new Runnable() {
+    @Override
+    public void run() {
+
+    }
+});
+```
+
+Adding any UI logic in the `runLater` block will prevent headache.
+
+#### Step 6 - Running the Application with Maven
+
+The JavaFX application with synchronization support should be ready to run.  The Spring Boot RESTful API is not in the equation for this particular application.  It will communicate directly with Sync Gateway which will communicate with Couchbase Server.
+
+Execute the following to run the JavaFX application:
+
+```
+mv jfx:run
+```
+
+If configured correctly, any data saved will be visible in the Sync Gateway administrative dashboard as well as Couchbase Server.
+
 ### Mobilizing the Spring Boot RESTful API with Sync Gateway REST Endpoints
 
 ## Resources

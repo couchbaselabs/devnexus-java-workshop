@@ -42,37 +42,10 @@ public class MovieFXController implements Initializable {
         try {
             this.couchbase = CouchbaseSingleton.getInstance();
             fxListView.getItems().addAll(this.couchbase.query());
-            this.couchbase.getDatabase().addChangeListener(new ChangeListener() {
-                @Override
-                public void changed(Database.ChangeEvent event) {
-                    for(int i = 0; i < event.getChanges().size(); i++) {
-                        final Document retrievedDocument = couchbase.getDatabase().getDocument(event.getChanges().get(i).getDocumentId());
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                int documentIndex = indexOfByDocumentId(retrievedDocument.getId(), fxListView.getItems());
-                                for(int j = 0; j < fxListView.getItems().size(); j++) {
-                                    if(((Movie)fxListView.getItems().get(j)).getDocumentId().equals(retrievedDocument.getId())) {
-                                        documentIndex = j;
-                                        break;
-                                    }
-                                }
-                                if (retrievedDocument.isDeleted()) {
-                                    if (documentIndex > -1) {
-                                        fxListView.getItems().remove(documentIndex);
-                                    }
-                                } else {
-                                    if (documentIndex == -1) {
-                                        fxListView.getItems().add(new Movie(retrievedDocument));
-                                    } else {
-                                        fxListView.getItems().remove(documentIndex);
-                                        fxListView.getItems().add(new Movie(retrievedDocument));                                    }
-                                }
-                            }
-                        });
-                    }
-                }
-            });
+            // Step #5 - Listening for Changes Rather Than Querying for Changes
+            // Hint
+            // Use a database change listener and determine what kind of change happened
+            /* CUSTOM CODE HERE */
         } catch (Exception e) {
             e.printStackTrace();
         }

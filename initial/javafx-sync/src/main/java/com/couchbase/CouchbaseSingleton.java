@@ -17,15 +17,10 @@ public class CouchbaseSingleton {
 
     private CouchbaseSingleton() {
         try {
-            this.manager = new Manager(new JavaContext("data"), Manager.DEFAULT_OPTIONS);
-            this.database = this.manager.getDatabase("devnexus");
-            View movieView = database.getView("movies");
-            movieView.setMap(new Mapper() {
-                @Override
-                public void map(Map<String, Object> document, Emitter emitter) {
-                    emitter.emit(document.get("_id"), document);
-                }
-            }, "1");
+            // Step #1 - Creating an Opening a Local Database
+            // Hint
+            // Let the manager create the database, and create a view to your data
+            /* CUSTOM CODE HERE */
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -43,12 +38,10 @@ public class CouchbaseSingleton {
     }
 
     public void startReplication(URL gateway, boolean continuous) {
-        this.pushReplication = this.database.createPushReplication(gateway);
-        this.pullReplication = this.database.createPullReplication(gateway);
-        this.pushReplication.setContinuous(continuous);
-        this.pullReplication.setContinuous(continuous);
-        this.pushReplication.start();
-        this.pullReplication.start();
+        // Step #4 - Synchronize the Local Data with Couchbase Server
+        // Hint
+        // Replications need to happen in both directions with Sync Gateway
+        /* CUSTOM CODE HERE */
     }
 
     public void stopReplication() {
@@ -57,30 +50,20 @@ public class CouchbaseSingleton {
     }
 
     public Movie save(Movie movie) {
-        Map<String, Object> properties = new HashMap<String, Object>();
-        Document document = this.database.createDocument();
-        properties.put("type", "movie");
-        properties.put("title", movie.getTitle());
-        properties.put("genre", movie.getGenre());
-        Map<String, Boolean> formats = new HashMap<String, Boolean>();
-        formats.put("digital", movie.getDigitalCopy());
-        formats.put("bluray", movie.getBluray());
-        formats.put("dvd", movie.getDvd());
-        properties.put("formats", formats);
-        try {
-            movie.setDocumentId(document.putProperties(properties).getDocument().getId());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Step #2 - Saving Locally to Couchbase Lite
+        // Hint
+        // Create a Map of the Movie properties and save it
+        /* CUSTOM CODE HERE */
         return movie;
     }
 
     public ArrayList<Movie> query() {
         ArrayList<Movie> results = new ArrayList<Movie>();
         try {
-            View movieView = this.database.getView("movies");
-            Query query = movieView.createQuery();
-            QueryEnumerator result = query.run();
+            // Step #3 - Querying for Locally Stored Documents
+            // Hint
+            // Use the MapReduce View for querying
+            /* CUSTOM CODE HERE */
             Document document = null;
             for (Iterator<QueryRow> it = result; it.hasNext(); ) {
                 QueryRow row = it.next();
