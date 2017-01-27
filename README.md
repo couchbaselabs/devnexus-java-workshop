@@ -581,6 +581,37 @@ If configured correctly, any data saved will be visible in the Sync Gateway admi
 
 ### Mobilizing the Spring Boot RESTful API with Sync Gateway REST Endpoints
 
+The JavaFX application is now synchronizing data rather than requesting it.  This is made possible because of Couchbase Sync Gateway.  However, Sync Gateway does its own configuration against the database and it currently differs to that of the Spring Boot example.
+
+To keep compatibility, some adjustments need to be made so the Angular application continues to work and the JavaFX application continues to sync.
+
+This section will focus on the **initial/spring-boot-sync** project.
+
+#### Step 1 - Using the Sync Gateway RESTful API
+
+To create documents managed by Sync Gateway, the Sync Gateway RESTful API must be used.  Information on the Sync Gateway RESTful API can be found in the [documentation](https://developer.couchbase.com/documentation/mobile/1.3/references/sync-gateway/rest-api/index.html#/).
+
+Essentially, the following Sync Gateway endpoint must be hit in order to save data:
+
+```
+POST http://localhost:4984/devnexus/
+BODY application/json
+```
+
+Think back to how POST requests were made via a Java client.  The same concept stands true for the Spring Boot server side application.
+
+Open the project's **src/main/java/couchbase/Application.java** file and find the first step.  The goal is to accept JSON data from a client request and POST it to the Sync Gateway RESTful API.
+
+#### Step 2 - Building the Spring Boot Application with Gradle
+
+Like with the pure Java SDK version of the Spring Boot project, it can be built and run using the following Gradle command:
+
+```
+./gradlew run
+```
+
+With the new version of the RESTful API running, try launching the Angular application again.  It should work exactly the same, but this time changes are being synchronized to the JavaFX version.
+
 ## Resources
 
 Couchbase - [https://www.couchbase.com](https://www.couchbase.com)

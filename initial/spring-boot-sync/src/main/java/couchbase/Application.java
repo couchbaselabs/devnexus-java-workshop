@@ -104,12 +104,10 @@ public class Application implements Filter {
     @RequestMapping(value="/movies", method=RequestMethod.POST)
     public Object createMovie(@RequestBody String json) {
         JsonObject jsonData = JsonObject.fromJson(json);
-        if(jsonData.getString("title") == null || jsonData.getString("title").equals("")) {
-            return new ResponseEntity<String>(JsonObject.create().put("message", "A `title` is required").toString(), HttpStatus.BAD_REQUEST);
-        } else if(jsonData.getString("genre") == null || jsonData.getString("genre").equals("")) {
-            return new ResponseEntity<String>(JsonObject.create().put("message", "A `genre` is required").toString(), HttpStatus.BAD_REQUEST);
-        }
-        JsonObject response = makePostRequest("http://" + gateway + ":4984/" + bucket().name() + "/", jsonData.toString());
+        // Step #1 - Using the Sync Gateway RESTful API
+        // Hint
+        // Think back to requests in the `javafx-http` project
+        /* CUSTOM CODE HERE */
         return new ResponseEntity<String>(json, HttpStatus.OK);
     }
 
