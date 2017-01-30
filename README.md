@@ -2,12 +2,7 @@
 
 This repository is a full stack development workshop for Java developers.  It was intended to demonstrate the development of Java applications for various platforms and share data with a NoSQL database, Couchbase.
 
-The Java development stack that this workshop is based around, includes:
-
-* Couchbase NoSQL, including Couchbase Mobile
-* Java with Spring Boot
-* JavaFX
-* Angular
+The Java development stack that this workshop is based around, includes Couchbase NoSQL, Java with Spring Boot, JavaFX, and Angular.
 
 Painting a picture, Java with Spring Boot will act as a RESTful API that communicates with a client as well as Couchbase.  Angular can act as the client that communicates with the RESTful API and so can the JavaFX desktop application.  However, the RESTful approach isn't the only approach, which is where Couchbase Mobile comes in.
 
@@ -21,6 +16,8 @@ There are many pieces to this project, each with their own set of dependencies. 
 * Gradle
 * Node.js 6.0+
 
+Docker will be used for deploying Couchbase and Couchbase Sync Gateway.  Since this is a Java based workshop, the JDK and appropriate build tools must be installed.  Angular will have a role in this workshop and it is made available through the Node Package Manager (NPM) which is available through Node.js.
+
 ## The Workshop Breakdown
 
 The workshop is broken down into two core sections, each with their own sub-sections.  The two sections consist of an **initial** project and a **complete** project.  The instructions in this README will walk you through the development of the **initial** project which will become **complete** as a final result.  If at any point in time you'd like to validate your work, find the corresponding sub-section in the **complete** directory.
@@ -30,6 +27,128 @@ The workshop is broken down into two core sections, each with their own sub-sect
 The **initial** project is split into six parts, where each part is essentially a new part of the stack.
 
 ### Deploying Couchbase with Docker
+
+The goal of this section is to create a cluster of Couchbase Server nodes that are provisioned and ready for development.  We will also create a Sync Gateway instance that is connected to the Couchbase Server cluster.  All of this is done in an automated fashion with Docker containers.
+
+This section will cover material found in the **initial/docker** directory.
+
+#### Step 1 - Provision a Couchbase Server Node with HTTP
+
+Deploying a Docker container with Couchbase Server is great, but it is even better when this deployed container has a fully configured and ready to go version of Couchbase Server.  This means no setup after deployment.
+
+Couchbase Server has a selection of RESTful APIs that are great for provisioning.  Take the example of defining memory quotas:
+
+```
+curl -v -X POST http://127.0.0.1:8091/pools/default -d memoryQuota=512 -d indexMemoryQuota=512
+```
+
+In the above example, the node will be assigned 512MB of memory to be used with Buckets.  Each Bucket created can use all or a portion of that allocated memory, however, it cannot be exceeded.
+
+Every node created can be scaled with certain services.  This means each node can have a data service, index service, query service, or all of the above.  These services can be defined with the following request:
+
+```
+curl -v http://127.0.0.1:8091/node/controller/setupServices -d services=kv%2cn1ql%2Cindex
+```
+
+Finally the index type needs to be defined.  There are several different kinds of indexes available, but an example of using a memory optimized index (MOI) can be seen below:
+
+```
+curl -i -u Administrator:password -X POST http://127.0.0.1:8091/settings/indexes -d 'storageMode=memory_optimized'
+```
+
+More information on the Couchbase Server RESTful API can be found in the [documentation](https://developer.couchbase.com/documentation/server/current/rest-api/rest-endpoints-all.html).
+
+Open the project's **server/configure-node.sh** file and find the first step.  Here we want to provision a node, but not create any Buckets.
+
+#### Step 2 - Create a New Bucket with N1QL Indexes
+
+For this example there will be two different types of Couchbase Server containers.  There will be a master container that creates the Buckets and indexes and there will be a worker container which is added to the cluster.  Couchbase has a peer-to-peer (P2P) architecture so this is more of a Docker dependency for automation purposes.
+
+To create a Bucket using one of the RESTful APIs you would execute this on the server:
+
+```
+curl -v -u Administrator:password -X POST http://127.0.0.1:8091/pools/default/buckets -d name=mybucket -d bucketType=couchbase -d ramQuotaMB=128 -d authType=sasl
+```
+
+Of course you would swap out the information with that of your own.
+
+Querying the Bucket with N1QL requires at least one index, no matter how basic it might be.  To create the most basic index on a Bucket, execute the following:
+
+```
+curl -v http://127.0.0.1:8093/query/service -d 'statement=create primary index on `mybucket`'
+```
+
+Open the project's **server/configure-node.sh** file and find the second step.  Here we'll want to create two Buckets with one index each.  The point of having two Buckets is that one will be used with the Sync Gateway section and the other will not.
+
+#### Step 3 - Add a New Node to a Cluster
+
+In the scenario we want to add a node to the cluster, we don't need to create Buckets or define indexes.  Instead we provision the node and tell it to add itself to the cluster.
+
+To add a node to an existing cluster, execute the following:
+
+```
+couchbase-cli server-add --cluster=<master-node>:8091 --user=Administrator --password=password --server-add=`hostname -i` --server-add-username=Administrator --server-add-password=password
+```
+
+By using `hostname -i` we can get the hostname of our current node and add it to a cluster node, in this case, the master node.  This information is defined in the project's **docker-compose.yml** file.
+
+Open the project's **server/configure-node.sh** file and find the third step.  In this step we'll want to connect a node to the Couchbase Server cluster.
+
+#### Step 4 - Building the Docker Images
+
+The scripts that were previously created are part of a custom **Dockerfile** which will eventually be a custom image.  Two different images need to be created, one for Couchbase Server and one for Couchbase Sync Gateway.
+
+From the command line, execute the following:
+
+```
+docker build -t couchbase-server-example ./server
+docker build -t couchbase-sync-gateway-example ./sync-gateway
+```
+
+The above commands will download any dependencies and create images for use.  Execute the following to find them in your list of images:
+
+```
+docker images
+```
+
+To remove them from your list of images, you can execute the following commands:
+
+```
+docker rmi couchbase-server-example
+docker rmi couchbase-sync-gateway-example
+```
+
+After building the images, they need to be deployed as containers.
+
+#### Step 5 - Deploying the Docker Containers
+
+With the images created, they are ready to be deployed.  Have a look at the **docker-compose.yml** file if you haven't already.  This file defines three containers and how they should be created.  This includes port information, hostname information, and any other commands.
+
+Execute the following to deploy the Couchbase Server master node:
+
+```
+docker-compose run -d --service-ports --name couchbase-master couchbase-master
+```
+
+Deployment of the container is not instant because of the provisioning script that is run.  Since it is running in detached mode, at any time running the following will check the logs:
+
+```
+docker logs -f couchbase-master
+```
+
+When the master node is finished, run the following to deploy the worker node:
+
+```
+docker-compose run -d --service-ports --name couchbase-worker couchbase-worker
+```
+
+After the worker node has finished booting, the Sync Gateway container needs to be deployed.  It can be deployed by executing the following:
+
+```
+docker-compose run -d --service-ports --name gateway gateway
+```
+
+To test that everything has finished deploying, Couchbase Server can be accessed at http://localhost:8091 from the host computer and http://localhost:4985/_admin/ for Sync Gateway.
 
 ### Building a RESTful API with Java, Spring Boot, and Couchbase Server
 

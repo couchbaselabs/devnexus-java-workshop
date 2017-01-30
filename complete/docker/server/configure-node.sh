@@ -4,7 +4,7 @@ set -m
 
 sleep 15
 
-curl -v -X POST http://127.0.0.1:8091/pools/default -d memoryQuota=300 -d indexMemoryQuota=300
+curl -v -X POST http://127.0.0.1:8091/pools/default -d memoryQuota=512 -d indexMemoryQuota=512
 
 curl -v http://127.0.0.1:8091/node/controller/setupServices -d services=kv%2cn1ql%2Cindex
 
@@ -18,11 +18,17 @@ if [ "$TYPE" = "worker" ]; then
 
 else
 
-    curl -v -u Administrator:password -X POST http://127.0.0.1:8091/pools/default/buckets -d name=devnexus -d bucketType=couchbase -d ramQuotaMB=256 -d authType=sasl
+    curl -v -u Administrator:password -X POST http://127.0.0.1:8091/pools/default/buckets -d name=devnexus -d bucketType=couchbase -d ramQuotaMB=128 -d authType=sasl
+
+    sleep 15
+
+    curl -v -u Administrator:password -X POST http://127.0.0.1:8091/pools/default/buckets -d name=devnexus_sg -d bucketType=couchbase -d ramQuotaMB=128 -d authType=sasl
 
     sleep 15
 
     curl -v http://127.0.0.1:8093/query/service -d 'statement=create primary index on `devnexus`'
+
+    curl -v http://127.0.0.1:8093/query/service -d 'statement=create primary index on `devnexus_sg`'
 
 fi;
 

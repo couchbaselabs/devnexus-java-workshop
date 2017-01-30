@@ -19,7 +19,7 @@ public class Main extends Application {
         primaryStage.setResizable(false);
         primaryStage.show();
         this.couchbase = CouchbaseSingleton.getInstance();
-        this.couchbase.startReplication(new URL("http://localhost:4984/devnexus/"), true);
+        this.couchbase.startReplication(new URL("http://localhost:4984/devnexus_sg/"), true);
     }
 
     @Override
