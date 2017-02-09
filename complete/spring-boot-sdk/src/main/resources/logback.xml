@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+	    <file>log</file>
+	    <append>true</append>
+	    <layout class="ch.qos.logback.classic.PatternLayout">
+		<Pattern>
+			%d{yyyy-MM-dd HH:mm:ss::SSS} %-5level [%thread] %logger{36} - %msg%n
+		</Pattern>
+	    </layout>
+	</appender>
+	<root level="TRACE">
+		<appender-ref ref="FILE" />
+	</root>
+
+</configuration>
