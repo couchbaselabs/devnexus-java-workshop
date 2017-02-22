@@ -16,6 +16,10 @@ services:
             - 21210:11210
         environment:
             TYPE: worker
+    backend-api:
+        image: spring-boot-example
+        ports:
+            - 8080:8080
     gateway:
         image: couchbase-sync-gateway-example
         ports:
