@@ -34,9 +34,11 @@ public class Movie {
         this.documentId = movie.getString("id");
         this.title = movie.getString("title");
         this.genre = movie.getString("genre");
-        this.digital = (movie.getObject("formats")).getBoolean("digital");
-        this.bluray = (movie.getObject("formats")).getBoolean("bluray");
-        this.dvd = (movie.getObject("formats")).getBoolean("dvd");
+        if(movie.getObject("formats") != null) {
+            this.digital = (movie.getObject("formats")).getBoolean("digital");
+            this.bluray = (movie.getObject("formats")).getBoolean("bluray");
+            this.dvd = (movie.getObject("formats")).getBoolean("dvd");
+        }
     }
 
     public void setDocumentId(String documentId) {

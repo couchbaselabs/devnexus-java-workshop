@@ -42,9 +42,9 @@
                         <tr *ngFor="let movie of movies">
                             <td>{{ movie.title }}</td>
                             <td>{{ movie.genre }}</td>
-                            <td>{{ movie.formats.digital || false }}</td>
-                            <td>{{ movie.formats.bluray || false }}</td>
-                            <td>{{ movie.formats.dvd || false }}</td>
+                            <td>{{ movie.formats?.digital || false }}</td>
+                            <td>{{ movie.formats?.bluray || false }}</td>
+                            <td>{{ movie.formats?.dvd || false }}</td>
                         </tr>
                     </tbody>
                 </table>
